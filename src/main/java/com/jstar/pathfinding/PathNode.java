@@ -1,13 +1,12 @@
 package com.jstar.pathfinding;
 
-import java.util.Objects;
+import java.util.Arrays;
 
 public class PathNode {
 
+    private final int hash;
     private PathNode[] neighbouringNodes = new PathNode[27];
-
     private PathNode previousNode;
-
     private int x;
     private int y;
     private int z;
@@ -16,25 +15,33 @@ public class PathNode {
     private float hCost;
     private boolean valid;
     private boolean visited;
-    private final int hash;
 
-    public PathNode(int x, int y, int z) {
-        /**
-         * TODO: This is not working like it should, please fix
-         * TODO: improve performance or find another solution to add neighbours
-         */
-        for(int i = -1; i < 1; i++){
-            for(int j = -1; j < 1; j++){
-                for(int k = -1; k < 1; k++){
-                    neighbouringNodes[i*j*k] = add(i,j,k);
-                }
-            }
-        }
+    /**
+     * TODO: This is not working like it should, please fix
+     * TODO: improve performance or find another solution to add neighbours
+     */
+    public PathNode(int x, int y, int z, boolean addNeighbours) {
+        if (addNeighbours) this.addNeighbours();
 
         this.hash = hashCode();
         this.x = x;
         this.y = y;
         this.z = z;
+    }
+
+    public PathNode(int x, int y, int z) {
+        this(x, y, z, false);
+    }
+
+    public void addNeighbours() {
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
+                for (int k = -1; k <= 1; k++) {
+                    final int index = (i + 1) + 3 * ((j + 1) + 3 * (k + 1));
+                    neighbouringNodes[index] = add(i, j, k);
+                }
+            }
+        }
     }
 
     public int getDistanceSq(PathNode other) {
@@ -44,11 +51,11 @@ public class PathNode {
         return dX * dX + dY * dY + dZ * dZ;
     }
 
-    public PathNode add(int x, int y, int z){
-        final int aX = this.x += x;
-        final int aY = this.y += y;
-        final int aZ = this.z += z;
-        return new PathNode(aX,aY,aZ);
+    public PathNode add(int x, int y, int z) {
+        final int aX = this.x + x;
+        final int aY = this.y + y;
+        final int aZ = this.z + z;
+        return new PathNode(aX, aY, aZ);
     }
 
     public int getX() {
@@ -63,16 +70,24 @@ public class PathNode {
         return z;
     }
 
-    public void setPreviousNode(PathNode previousNode) {
-        this.previousNode = previousNode;
-    }
-
     public PathNode getPreviousNode() {
         return previousNode;
     }
 
+    public boolean hasPreviousNode() {
+        return previousNode != null;
+    }
+
+    public void setPreviousNode(PathNode previousNode) {
+        this.previousNode = previousNode;
+    }
+
     public float getgCost() {
         return gCost;
+    }
+
+    public void setgCost(float gCost) {
+        this.gCost = gCost;
     }
 
     public float gethCost() {
@@ -95,16 +110,16 @@ public class PathNode {
         return this.valid;
     }
 
+    public void setValid(boolean valid) {
+        this.valid = valid;
+    }
+
     public boolean isVisited() {
         return visited;
     }
 
     public void setVisited(boolean visited) {
         this.visited = visited;
-    }
-
-    public void setValid(boolean valid) {
-        this.valid = valid;
     }
 
     @Override
@@ -118,7 +133,21 @@ public class PathNode {
                 valid == pathNode.valid;
     }
 
-    public void setgCost(float gCost) {
-        this.gCost = gCost;
+    @Override
+    public String toString() {
+        if (this.neighbouringNodes[0] == null) return "PathNode{x=" + x + ", y=" + y + ", z=" + z + "}";
+        return "PathNode{" +
+                "hash=" + hash +
+                ", neighbouringNodes=" + Arrays.toString(neighbouringNodes) +
+                ", previousNode=" + previousNode +
+                ", x=" + x +
+                ", y=" + y +
+                ", z=" + z +
+                ", gCost=" + gCost +
+                ", wCost=" + wCost +
+                ", hCost=" + hCost +
+                ", valid=" + valid +
+                ", visited=" + visited +
+                '}';
     }
 }

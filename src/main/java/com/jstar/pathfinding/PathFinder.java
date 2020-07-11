@@ -1,48 +1,58 @@
 package com.jstar.pathfinding;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
+import com.jstar.Helper;
+
+import java.util.*;
 
 public class PathFinder {
-
     private final ArrayList<PathNode> openSet = new ArrayList<PathNode>();
     private final ArrayList<PathNode> closedSet = new ArrayList<PathNode>();
 
     private final HashMap<PathNode, Float> gScoreMap = new HashMap<PathNode, Float>();
-    private PathNode currentPoint;
 
     public Path calculatePath(PathNode start, PathNode goal, float hCost) {
         openSet.add(start);
 
+        PathNode currentNode = start;
         while (!openSet.isEmpty()) {
-            currentPoint = openSet.stream().min(Comparator.comparingDouble(PathNode::getwCost)).orElse(null);
+            PathNode temp = currentNode;
+            currentNode = openSet.stream().min(Comparator.comparingDouble(PathNode::getgCost)).orElse(null);
+            currentNode.setPreviousNode(temp);
+            currentNode.addNeighbours();
 
-            if (currentPoint.equals(goal)) {
-                
+            if (currentNode.equals(goal)) {
+                return backTrace(currentNode);
             }
 
-            closedSet.add(currentPoint);
-            //TODO: renaming (I am bad at naming things)
-            for (PathNode currentNode : currentPoint.getNeighbouringNodes()) {
-                if (closedSet.contains(currentNode))
-                    continue;
-                //TODO: implement Heuristic G function
-                final float tentG = /*g(currentPoint,currentNode) + */ currentPoint.getDistanceSq(currentNode);
+            closedSet.add(currentNode);
 
-                if (openSet.contains(currentNode) && tentG >= currentNode.getgCost())
+            for (PathNode neighbour : currentNode.getNeighbouringNodes()) {
+                if (closedSet.contains(neighbour))
                     continue;
 
-                currentNode.setPreviousNode(currentPoint);
-                currentNode.setgCost(tentG);
-                //TODO: finish
+                final float tentG = Helper.getHelperSingleton().getTentativeGCost(currentNode, neighbour, goal);
+
+                if ((openSet.contains(neighbour) && tentG >= neighbour.getgCost()) || !neighbour.isValid())
+                    continue;
+
+                openSet.add(neighbour);
+                neighbour.setgCost(tentG);
             }
+
+            openSet.remove(currentNode);
         }
-        return null;
+        throw new IllegalStateException("Failed to find path");
     }
 
     private Path backTrace(PathNode current) {
+       ArrayList<PathNode> nodes = new ArrayList<>();
 
+        while (current.hasPreviousNode()) {
+            nodes.add(current);
+            current = current.getPreviousNode();
+        }
+
+        Collections.reverse(nodes);
+        return new Path(nodes, nodes.get(0), nodes.get(nodes.size() - 1));
     }
-
 }
