@@ -19,7 +19,7 @@ public class PathFinder {
             currentPoint = openSet.stream().min(Comparator.comparingDouble(PathNode::getwCost)).orElse(null);
 
             if (currentPoint.equals(goal)) {
-
+                
             }
 
             closedSet.add(currentPoint);
